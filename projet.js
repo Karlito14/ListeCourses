@@ -17,6 +17,9 @@ const addNewItem = () => {
     while(valueItem.indexOf("  ") !== -1){
         valueItem = valueItem.replace("  ", " ");
     }
+    // Mettre la 1ere lettre en majuscule
+    const majuscule = valueItem[0].toUpperCase();
+    valueItem = majuscule + valueItem.slice(1);
     // Récupérer le noeud paragraphe dans le li
     const elementNom = elementLi.querySelector('.nom-item');
     // Insérer la valeur du input dans le noeud paragraphe
