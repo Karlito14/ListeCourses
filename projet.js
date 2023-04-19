@@ -10,13 +10,23 @@ const addNewItem = () => {
     // Cloner l'élément li du template
     const elementLi = templateItem.content.cloneNode(true);
     // Recupère la valeur du nouvel item
-    const valueItem = inputNewItem.value;  
+    let valueItem = inputNewItem.value; 
+    // Supprimer les espaces avant et après de l'item
+    valueItem = valueItem.trim();
+    // Supprimer les espaces superficiels au milieu de la string
+    while(valueItem.indexOf("  ") !== -1){
+        valueItem = valueItem.replace("  ", " ");
+    }
     // Récupérer le noeud paragraphe dans le li
     const elementNom = elementLi.querySelector('.nom-item');
     // Insérer la valeur du input dans le noeud paragraphe
-    elementNom.textContent = valueItem
+    elementNom.textContent = valueItem;
     // Rattacher l'élément li au noeud ul
     listeUl.appendChild(elementLi);
+    // Vider le input une fois le item rajouté
+    inputNewItem.value = "";
+    // Focus sur le input
+    inputNewItem.focus()
 }
 
 formulaire.addEventListener('submit', (event) => {
