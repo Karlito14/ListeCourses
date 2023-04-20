@@ -32,8 +32,22 @@ const addNewItem = () => {
         elementQuantite.textContent = premierMot;
         // Je retire le 1er élément du tableau
         tableauSplit.shift();
+
+        // test si le 2ème mot est une unité
+        const selectOptions = elementLi.querySelector('.unite');
+        for (let i = 1 ; i < selectOptions.length; i++) {
+            const valueOptions = selectOptions[i].value;
+            // Je vérifie si le deuxième est une unité
+            if(tableauSplit[0].includes(valueOptions)) {
+                const unite = tableauSplit[0];
+                tableauSplit.shift();
+                selectOptions.value = unite;
+            }
+        }
+
     }
-    // Je concatène tous les élements du tableau
+
+    // Je concatène tous les élements du tableau 
     valueItem = tableauSplit.join(' ');
 
     // Mettre la 1ere lettre en majuscule
