@@ -6,15 +6,39 @@ const listeUl = document.querySelector('#liste');
 const templateItem = document.querySelector('#template-item');
 const maListe = [];
 
+const getItem = () => {
+    // Je récupère la liste stocké dans le local storage
+    const listeJSON = localStorage.getItem('liste');
+    
+    if (listeJSON !== null) {
+        // Je convertis la liste en tableau
+        const listeObjet = JSON.parse(listeJSON);
+        for (let i = 0; i < listeObjet.length; i++) {
+            // J'insère chaque objet dans mon tableau liste
+            maListe.push(listeObjet[i]);
+            const elementLi = templateItem.content.cloneNode(true);
+            const elementQuantite = elementLi.querySelector('.quantite');
+            const selectOptions = elementLi.querySelector('.unite');
+            const elementNom = elementLi.querySelector('.nom-item');
+
+            // Je donne les valeurs de mon objet à l'emplacement qu'il convient
+            elementNom.textContent = listeObjet[i].nom;
+            elementQuantite.textContent = listeObjet[i].quantite;
+            selectOptions.value = listeObjet[i].unite;
+            listeUl.append(elementLi);
+        }
+    }
+}
+getItem();
+
 const addNewItem = () => {
-    const liste = localStorage.getItem('liste');
-    console.log(liste)
     // Cloner l'élément li du template
     const elementLi = templateItem.content.cloneNode(true);
 
+    // construction d'un objet
     const objetItem = {
         nom : null,
-        quantité : 1,
+        quantite : 1,
         unite : 'u.',
     }
 
@@ -37,8 +61,8 @@ const addNewItem = () => {
     // Test si c'est un nombre 
     if(Number.isInteger(premierMot)){
         const elementQuantite = elementLi.querySelector('.quantite');
-        objetItem.quantité = premierMot;
-        elementQuantite.textContent = objetItem.quantité ;
+        objetItem.quantite = premierMot;
+        elementQuantite.textContent = objetItem.quantite ;
         // Je retire le 1er élément du tableau
         tableauSplit.shift();
         
