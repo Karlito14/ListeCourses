@@ -6,6 +6,21 @@ const listeUl = document.querySelector('#liste');
 const templateItem = document.querySelector('#template-item');
 const maListe = [];
 
+const replaceWithInput = (paragraphe) => {
+    const inputNom = document.createElement('input');
+    inputNom.type = "text";
+    inputNom.className = paragraphe.className;
+    inputNom.value = paragraphe.textContent;
+    paragraphe.replaceWith(inputNom);
+
+    inputNom.focus();
+
+    inputNom.addEventListener('blur', () => {
+        paragraphe.textContent = inputNom.value;
+        inputNom.replaceWith(paragraphe)
+    });
+}
+
 const getItem = () => {
     // Je récupère la liste stocké dans le local storage
     const listeJSON = localStorage.getItem('liste');
@@ -26,6 +41,23 @@ const getItem = () => {
             elementQuantite.textContent = listeObjet[i].quantite;
             selectOptions.value = listeObjet[i].unite;
             listeUl.append(elementLi);
+
+            elementNom.addEventListener('focus', () => {
+                const inputNom = document.createElement('input');
+                inputNom.type = "text";
+                inputNom.className = elementNom.className;
+                inputNom.value = elementNom.textContent;
+                elementNom.replaceWith(inputNom);
+                inputNom.focus();
+
+                inputNom.addEventListener('blur', () => {
+                    elementNom.textContent = inputNom.value;
+                    inputNom.replaceWith(elementNom)
+                });
+            });
+
+            
+            
         }
     }
 }
@@ -93,12 +125,26 @@ const addNewItem = () => {
     
     // Récupérer le noeud paragraphe dans le li
     const elementNom = elementLi.querySelector('.nom-item');
-    
+
     // Insérer la valeur du input dans le noeud paragraphe
     elementNom.textContent = objetItem.nom;
     
     // Rattacher l'élément li au noeud ul
     listeUl.appendChild(elementLi);
+
+    elementNom.addEventListener('focus', () => {
+        const inputNom = document.createElement('input');
+        inputNom.type = "text";
+        inputNom.className = elementNom.className;
+        inputNom.value = elementNom.textContent;
+        elementNom.replaceWith(inputNom);
+        inputNom.focus();
+
+        inputNom.addEventListener('blur', () => {
+            elementNom.textContent = inputNom.value;
+            inputNom.replaceWith(elementNom)
+        });
+    });
     
     // Vider le input une fois le item rajouté
     inputNewItem.value = "";
