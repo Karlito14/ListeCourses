@@ -6,14 +6,24 @@ const listeUl = document.querySelector('#liste');
 const templateItem = document.querySelector('#template-item');
 const maListe = [];
 
+const indexDeLiDansListe = (element) => {
+    const li = element.closest('li');
+    const enfants = Array.from(listeUl.children);
+    return enfants.indexOf(li);
+}
+
+const sauvegarde = () => {
+    localStorage.setItem('liste', JSON.stringify(maListe));
+}
+
 // function pour remplacer le paragraphe en input
-const replaceWithInput = (e) => {
-    const elementParagraphe = e.target;
+const replaceWithInput = (event) => {
+    const elementParagraphe = event.target;
     const inputNom = document.createElement('input');
     if(elementParagraphe.className === "quantite") {
         inputNom.type = "number";
         inputNom.setAttribute('min', 1);
-        inputNom.setAttribute('max', 99);
+        inputNom.setAttribute('max', 999);
     } else {
         inputNom.type = "text";
     }
@@ -22,14 +32,26 @@ const replaceWithInput = (e) => {
     elementParagraphe.replaceWith(inputNom);
     inputNom.focus();
 
-    function gestionblur(e) {
-        if (inputNom.value < 1) {
-            elementParagraphe.textContent = 1;
-        } else if (inputNom.value > 99) {
-            elementParagraphe.textContent = 99;
+    function gestionblur(event) {
+        const element = event.target;
+        const index = indexDeLiDansListe(element);
+        
+        if(element.className === 'nom-item'){
+            maListe[index].nom = element.value; 
+            elementParagraphe.textContent = element.value;   
         } else {
-            elementParagraphe.textContent = inputNom.value;
+            if (element.value < 1) {
+                maListe[index].quantite = 1;    
+                elementParagraphe.textContent = 1;
+            } else if (element.value > 999) {
+                maListe[index].quantite = 999;
+                elementParagraphe.textContent = 999;
+            } else {
+                maListe[index].quantite = +element.value;
+                elementParagraphe.textContent = +inputNom.value;
+            };
         }
+        sauvegarde();
         inputNom.replaceWith(elementParagraphe);
     };
 
@@ -38,8 +60,8 @@ const replaceWithInput = (e) => {
     inputNom.addEventListener('keyup', (event) => {
         if(event.code === 'Enter' || event.code === 'NumpadEnter') {
             inputNom.removeEventListener('blur', gestionblur);
-            gestionblur();   
-        }
+            gestionblur(event);   
+        };
     });
 };
 
@@ -68,7 +90,14 @@ const getItem = () => {
             elementQuantite.addEventListener('focus', replaceWithInput)
 
             // Modifier le nom de l'item
-            elementNom.addEventListener('focus', replaceWithInput);    
+            elementNom.addEventListener('focus', replaceWithInput);  
+            
+            // Modifier l'unité de l'item
+            selectOptions.addEventListener('change', (event)=> {
+                const index = indexDeLiDansListe(selectOptions);
+                maListe[index].unite = selectOptions.value;
+                sauvegarde();
+            });
         }
     }
 }
@@ -101,16 +130,16 @@ const addNewItem = () => {
     const tableauSplit = objetItem.nom.split(' ');
     // Récupération du premier mot et conversion en nombre si c'est possible
     const premierMot = +tableauSplit[0];
+    const elementQuantite = elementLi.querySelector('.quantite');
+    const selectOptions = elementLi.querySelector('.unite');
     // Test si c'est un nombre 
     if(Number.isInteger(premierMot)){
-        const elementQuantite = elementLi.querySelector('.quantite');
         objetItem.quantite = premierMot;
         elementQuantite.textContent = objetItem.quantite ;
         // Je retire le 1er élément du tableau
         tableauSplit.shift();
         
         // test si le 2ème mot est une unité
-        const selectOptions = elementLi.querySelector('.unite');
         for (let i = 1 ; i < selectOptions.length; i++) {
             const valueOptions = selectOptions[i].value;
             // Je vérifie si le deuxième est une unité
@@ -132,7 +161,7 @@ const addNewItem = () => {
 
     // stockage de ma liste dans mon local storage
     maListe.push(objetItem);
-    localStorage.setItem('liste', JSON.stringify(maListe));
+    sauvegarde();
     
     // Récupérer le noeud paragraphe dans le li
     const elementNom = elementLi.querySelector('.nom-item');
@@ -145,6 +174,12 @@ const addNewItem = () => {
 
     // Modifier le paragraphe en input pour changer sa valeur
     elementNom.addEventListener('focus', replaceWithInput);
+    elementQuantite.addEventListener('focus', replaceWithInput);
+    selectOptions.addEventListener('change', (event)=> {
+        const index = indexDeLiDansListe(selectOptions);
+        maListe[index].unite = selectOptions.value;
+        sauvegarde();
+    });
     
     // Vider le input une fois le item rajouté
     inputNewItem.value = "";
