@@ -6,20 +6,42 @@ const listeUl = document.querySelector('#liste');
 const templateItem = document.querySelector('#template-item');
 const maListe = [];
 
-const replaceWithInput = (paragraphe) => {
+// function pour remplacer le paragraphe en input
+const replaceWithInput = (e) => {
+    const elementParagraphe = e.target;
     const inputNom = document.createElement('input');
-    inputNom.type = "text";
-    inputNom.className = paragraphe.className;
-    inputNom.value = paragraphe.textContent;
-    paragraphe.replaceWith(inputNom);
-
+    if(elementParagraphe.className === "quantite") {
+        inputNom.type = "number";
+        inputNom.setAttribute('min', 1);
+        inputNom.setAttribute('max', 99);
+    } else {
+        inputNom.type = "text";
+    }
+    inputNom.className = elementParagraphe.className;
+    inputNom.value = elementParagraphe.textContent;
+    elementParagraphe.replaceWith(inputNom);
     inputNom.focus();
 
-    inputNom.addEventListener('blur', () => {
-        paragraphe.textContent = inputNom.value;
-        inputNom.replaceWith(paragraphe)
+    function gestionblur(e) {
+        if (inputNom.value < 1) {
+            elementParagraphe.textContent = 1;
+        } else if (inputNom.value > 99) {
+            elementParagraphe.textContent = 99;
+        } else {
+            elementParagraphe.textContent = inputNom.value;
+        }
+        inputNom.replaceWith(elementParagraphe);
+    };
+
+    inputNom.addEventListener('blur', gestionblur);
+
+    inputNom.addEventListener('keyup', (event) => {
+        if(event.code === 'Enter' || event.code === 'NumpadEnter') {
+            inputNom.removeEventListener('blur', gestionblur);
+            gestionblur();   
+        }
     });
-}
+};
 
 const getItem = () => {
     // Je récupère la liste stocké dans le local storage
@@ -42,22 +64,11 @@ const getItem = () => {
             selectOptions.value = listeObjet[i].unite;
             listeUl.append(elementLi);
 
-            elementNom.addEventListener('focus', () => {
-                const inputNom = document.createElement('input');
-                inputNom.type = "text";
-                inputNom.className = elementNom.className;
-                inputNom.value = elementNom.textContent;
-                elementNom.replaceWith(inputNom);
-                inputNom.focus();
+            // Modifier la quantité de l'item
+            elementQuantite.addEventListener('focus', replaceWithInput)
 
-                inputNom.addEventListener('blur', () => {
-                    elementNom.textContent = inputNom.value;
-                    inputNom.replaceWith(elementNom)
-                });
-            });
-
-            
-            
+            // Modifier le nom de l'item
+            elementNom.addEventListener('focus', replaceWithInput);    
         }
     }
 }
@@ -132,19 +143,8 @@ const addNewItem = () => {
     // Rattacher l'élément li au noeud ul
     listeUl.appendChild(elementLi);
 
-    elementNom.addEventListener('focus', () => {
-        const inputNom = document.createElement('input');
-        inputNom.type = "text";
-        inputNom.className = elementNom.className;
-        inputNom.value = elementNom.textContent;
-        elementNom.replaceWith(inputNom);
-        inputNom.focus();
-
-        inputNom.addEventListener('blur', () => {
-            elementNom.textContent = inputNom.value;
-            inputNom.replaceWith(elementNom)
-        });
-    });
+    // Modifier le paragraphe en input pour changer sa valeur
+    elementNom.addEventListener('focus', replaceWithInput);
     
     // Vider le input une fois le item rajouté
     inputNewItem.value = "";
