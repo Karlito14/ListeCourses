@@ -215,7 +215,6 @@ li {
   transition: flex-grow ease var(--transition-duration);
 }
 
-
 p.nom {
   overflow: scroll;
   white-space: nowrap;

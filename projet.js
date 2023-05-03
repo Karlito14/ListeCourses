@@ -16,6 +16,20 @@ const sauvegarde = () => {
     localStorage.setItem('liste', JSON.stringify(maListe));
 }
 
+const deleteItem = (event) => {
+    const elementSupprimer = event.currentTarget;
+    const index = indexDeLiDansListe(elementSupprimer);
+    maListe.splice(index, 1);
+    sauvegarde();
+    const li = listeUl.children[index];
+    li.addEventListener('transitionend', (event) => {
+        if(event.propertyName === 'height'){
+            li.remove();
+        }
+    })
+    li.classList.add('suppression')
+}
+
 // function pour remplacer le paragraphe en input
 const replaceWithInput = (event) => {
     const elementParagraphe = event.target;
@@ -80,6 +94,10 @@ const getItem = () => {
             const selectOptions = elementLi.querySelector('.unite');
             const elementNom = elementLi.querySelector('.nom-item');
 
+            // Récupérer l'élément poubelle
+            const elementSupprimer = elementLi.querySelector('.supprimer');
+            elementSupprimer.addEventListener('click', deleteItem);
+
             // Je donne les valeurs de mon objet à l'emplacement qu'il convient
             elementNom.textContent = listeObjet[i].nom;
             elementQuantite.textContent = listeObjet[i].quantite;
@@ -124,6 +142,10 @@ const addNewItem = () => {
     while(objetItem.nom.indexOf("  ") !== -1){
         objetItem.nom = objetItem.nom.replace("  ", " ");
     }
+
+    // Récupérer l'élément poubelle
+    const elementSupprimer = elementLi.querySelector('.supprimer');
+    elementSupprimer.addEventListener('click', deleteItem);
 
     // Insertion intelligente
     // Division de ma string en tableau
@@ -210,6 +232,6 @@ formulaire.addEventListener('submit', (event) => {
     event.preventDefault();
     // appel de la fonction pour ajouter le nouvel item
     addNewItem();
-})
+});
 
 
