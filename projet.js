@@ -1,5 +1,6 @@
 const inputNewItem = document.querySelector('#nouvel-item');
 const formulaire = document.querySelector('form');
+const buttonExporter = document.querySelector('#exporter');
 // Recupérer la liste ul
 const listeUl = document.querySelector('#liste');
 // Récupérer la référence du template
@@ -234,4 +235,19 @@ formulaire.addEventListener('submit', (event) => {
     addNewItem();
 });
 
+// Exporter ma liste de courses
+buttonExporter.addEventListener('click', () => {
+    console.log(maListe);
+    let resultat = "";
+    for(let i = 0; i < maListe.length; i++) {
+        const chaine = `- ${maListe[i].nom} (${maListe[i].quantite} ${maListe[i].unite})%0D%0A`;
+        resultat += chaine;
+    }
 
+    // construction de l'url pour le mailto
+    let url = "mailto:leiroz26@hotmail.com";
+    url += "?subject=Liste de courses";
+    url += "&body=" + resultat;
+    
+    window.location = url;
+});
