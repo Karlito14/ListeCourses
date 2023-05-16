@@ -80,6 +80,21 @@ const replaceWithInput = (event) => {
     });
 };
 
+const mooveItem = (event) => {
+    const elementPoignee = event.target;
+    const itemLi = elementPoignee.closest('li');
+    itemLi.setAttribute('draggable', 'true');
+    itemLi.classList.add('drag-start');
+};
+
+const dragEnd = (event) => {
+    const elementPoignee = event.target;
+    const itemLi = elementPoignee.closest('li');
+    itemLi.removeAttribute('draggable');
+    itemLi.classList.remove('drag-start');
+
+}
+
 const getItem = () => {
     // Je récupère la liste stocké dans le local storage
     const listeJSON = localStorage.getItem('liste');
@@ -90,20 +105,27 @@ const getItem = () => {
         for (let i = 0; i < listeObjet.length; i++) {
             // J'insère chaque objet dans mon tableau liste
             maListe.push(listeObjet[i]);
-            const elementLi = templateItem.content.cloneNode(true);
-            const elementQuantite = elementLi.querySelector('.quantite');
-            const selectOptions = elementLi.querySelector('.unite');
-            const elementNom = elementLi.querySelector('.nom-item');
+            const fragmentDoc = templateItem.content.cloneNode(true);
+            const elementQuantite = fragmentDoc.querySelector('.quantite');
+            const selectOptions = fragmentDoc.querySelector('.unite');
+            const elementNom = fragmentDoc.querySelector('.nom-item');
 
             // Récupérer l'élément poubelle
-            const elementSupprimer = elementLi.querySelector('.supprimer');
+            const elementSupprimer = fragmentDoc.querySelector('.supprimer');
             elementSupprimer.addEventListener('click', deleteItem);
+
+            // récupérer l'élément poignée pour déplace un item
+            const elementPoignee = fragmentDoc.querySelector('.poignee');
+            const elementLi = fragmentDoc.querySelector('li');
+            elementPoignee.addEventListener('mousedown', mooveItem);
+            elementPoignee.addEventListener('mouseup', dragEnd);
+            elementLi.addEventListener('dragend', dragEnd);
 
             // Je donne les valeurs de mon objet à l'emplacement qu'il convient
             elementNom.textContent = listeObjet[i].nom;
             elementQuantite.textContent = listeObjet[i].quantite;
             selectOptions.value = listeObjet[i].unite;
-            listeUl.append(elementLi);
+            listeUl.append(fragmentDoc);
 
             // Modifier la quantité de l'item
             elementQuantite.addEventListener('focus', replaceWithInput)
@@ -124,7 +146,7 @@ getItem();
 
 const addNewItem = () => {
     // Cloner l'élément li du template
-    const elementLi = templateItem.content.cloneNode(true);
+    const fragmentDoc = templateItem.content.cloneNode(true);
 
     // construction d'un objet
     const objetItem = {
@@ -145,16 +167,23 @@ const addNewItem = () => {
     }
 
     // Récupérer l'élément poubelle
-    const elementSupprimer = elementLi.querySelector('.supprimer');
+    const elementSupprimer = fragmentDoc.querySelector('.supprimer');
     elementSupprimer.addEventListener('click', deleteItem);
+
+    // récupérer l'élément poignée pour déplace un item
+    const elementPoignee = fragmentDoc.querySelector('.poignee');
+    const elementLi = fragmentDoc.querySelector('li');
+    elementPoignee.addEventListener('mousedown', mooveItem);
+    elementPoignee.addEventListener('mouseup', dragEnd);
+    elementLi.addEventListener('dragend', dragEnd);
 
     // Insertion intelligente
     // Division de ma string en tableau
     const tableauSplit = objetItem.nom.split(' ');
     // Récupération du premier mot et conversion en nombre si c'est possible
     const premierMot = +tableauSplit[0];
-    const elementQuantite = elementLi.querySelector('.quantite');
-    const selectOptions = elementLi.querySelector('.unite');
+    const elementQuantite = fragmentDoc.querySelector('.quantite');
+    const selectOptions = fragmentDoc.querySelector('.unite');
     // Test si c'est un nombre 
     if(Number.isInteger(premierMot)){
         objetItem.quantite = premierMot;
@@ -187,13 +216,13 @@ const addNewItem = () => {
     sauvegarde();
     
     // Récupérer le noeud paragraphe dans le li
-    const elementNom = elementLi.querySelector('.nom-item');
+    const elementNom = fragmentDoc.querySelector('.nom-item');
 
-    // Insérer la valeur du input dans le noeud paragraphe
+    // Insérer la valeur du nom dans le noeud paragraphe
     elementNom.textContent = objetItem.nom;
     
     // Rattacher l'élément li au noeud ul
-    listeUl.appendChild(elementLi);
+    listeUl.appendChild(fragmentDoc);
 
     // Modifier le paragraphe en input pour changer sa valeur
     elementNom.addEventListener('focus', replaceWithInput);
@@ -237,13 +266,11 @@ formulaire.addEventListener('submit', (event) => {
 
 // Exporter ma liste de courses
 buttonExporter.addEventListener('click', () => {
-    console.log(maListe);
     let resultat = "";
     for(let i = 0; i < maListe.length; i++) {
         const chaine = `- ${maListe[i].nom} (${maListe[i].quantite} ${maListe[i].unite})%0D%0A`;
         resultat += chaine;
-    }
-
+    };
     // construction de l'url pour le mailto
     let url = "mailto:leiroz26@hotmail.com";
     url += "?subject=Liste de courses";
@@ -251,3 +278,4 @@ buttonExporter.addEventListener('click', () => {
     
     window.location = url;
 });
+
