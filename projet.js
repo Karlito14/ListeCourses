@@ -7,6 +7,16 @@ const listeUl = document.querySelector('#liste');
 const templateItem = document.querySelector('#template-item');
 const maListe = [];
 
+// création d'un indicateur unique
+const indicateur = document.createElement('li');
+indicateur.classList.add('indicateur');
+indicateur.addEventListener('dragover', (event) => {
+    event.preventDefault();
+});
+indicateur.addEventListener('drop', drop);
+let itemEnDeplacement;
+let positionInitiale;
+
 const indexDeLiDansListe = (element) => {
     const li = element.closest('li');
     const enfants = Array.from(listeUl.children);
@@ -85,6 +95,9 @@ const mooveItem = (event) => {
     const itemLi = elementPoignee.closest('li');
     itemLi.setAttribute('draggable', 'true');
     itemLi.classList.add('drag-start');
+    itemEnDeplacement = itemLi;
+    listeUl.classList.add('drag-en-cours');
+    positionInitiale = indexDeLiDansListe(itemEnDeplacement);
 };
 
 const dragEnd = (event) => {
@@ -92,7 +105,54 @@ const dragEnd = (event) => {
     const itemLi = elementPoignee.closest('li');
     itemLi.removeAttribute('draggable');
     itemLi.classList.remove('drag-start');
+    listeUl.classList.remove('drag-en-cours');
+    
+    const positionIndicateur = indexDeLiDansListe(indicateur);
+    if(positionIndicateur >= 0) {
+        indicateur.remove();
+    };
+};
 
+const dragOver = (event) => {
+    event.preventDefault();
+    
+    const li = event.currentTarget;
+    
+    const milieu = li.offsetHeight / 2;
+    const positionCurseur = event.offsetY;
+
+    if(li === itemEnDeplacement || (li === itemEnDeplacement.previousElementSibling && positionCurseur > milieu) || (li === itemEnDeplacement.nextElementSibling && positionCurseur <= milieu)) {
+        indicateur.remove();
+    } else {
+        if(positionCurseur <= milieu) {
+            if(li.previousElementSibling !== indicateur) {
+                li.before(indicateur);
+            }
+        } else {
+            if(li.nextElementSibling !== indicateur) {
+                li.after(indicateur);
+            }
+        }
+    }
+};
+
+function drop (event) {
+    // mettre à jour les données de mon tableau maLliste
+    const positionIndicateur = indexDeLiDansListe(indicateur);
+    
+    // si mon indicateur apparait
+    if(positionIndicateur >= 0){
+        // je supprime mon item en déplacement de mon tableau
+        const item = maListe.splice(positionInitiale, 1)[0];
+        // puis je le rajoute à sa nouvelle position
+        if(positionIndicateur > positionInitiale) {
+            maListe.splice(positionIndicateur - 1, 0, item);
+        } else {
+            maListe.splice(positionIndicateur, 0, item);
+        }
+        indicateur.replaceWith(itemEnDeplacement);
+        sauvegarde();
+    }
 }
 
 const getItem = () => {
@@ -121,6 +181,10 @@ const getItem = () => {
             elementPoignee.addEventListener('mouseup', dragEnd);
             elementLi.addEventListener('dragend', dragEnd);
 
+            // Gérer l'affichage d'un indicateur lors du déplacement d'un item
+            elementLi.addEventListener('dragover', dragOver);
+            elementLi.addEventListener('drop', drop);
+
             // Je donne les valeurs de mon objet à l'emplacement qu'il convient
             elementNom.textContent = listeObjet[i].nom;
             elementQuantite.textContent = listeObjet[i].quantite;
@@ -147,7 +211,7 @@ getItem();
 const addNewItem = () => {
     // Cloner l'élément li du template
     const fragmentDoc = templateItem.content.cloneNode(true);
-
+    
     // construction d'un objet
     const objetItem = {
         nom : null,
@@ -176,6 +240,7 @@ const addNewItem = () => {
     elementPoignee.addEventListener('mousedown', mooveItem);
     elementPoignee.addEventListener('mouseup', dragEnd);
     elementLi.addEventListener('dragend', dragEnd);
+    elementLi.addEventListener('drop', drop);
 
     // Insertion intelligente
     // Division de ma string en tableau
@@ -195,7 +260,7 @@ const addNewItem = () => {
         for (let i = 1 ; i < selectOptions.length; i++) {
             const valueOptions = selectOptions[i].value;
             // Je vérifie si le deuxième est une unité
-            if(tableauSplit[0].includes(valueOptions)) {
+            if(tableauSplit.includes(valueOptions)) {
                 objetItem.unite = tableauSplit[0];
                 tableauSplit.shift();
                 selectOptions.value = objetItem.unite;
