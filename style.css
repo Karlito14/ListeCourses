@@ -183,6 +183,7 @@ li {
   margin-top: var(--dim-3);
   height: var(--dim-6);
   right: 0;
+  transition: all 0.5s;
 }
 
 .suppression {

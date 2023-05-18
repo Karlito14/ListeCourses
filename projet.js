@@ -150,9 +150,44 @@ function drop (event) {
         } else {
             maListe.splice(positionIndicateur, 0, item);
         }
-        indicateur.replaceWith(itemEnDeplacement);
-        sauvegarde();
+        //sauvegarde();
+
+        // Animation de deplacement de l'item
+        itemEnDeplacement.addEventListener('transitionend', (event) => {
+            const phaseItem = itemEnDeplacement.dataset.phase;
+            if(event.propertyName === 'transform') {
+                switch (phaseItem) {
+                    case 'decollage' :
+                        const hauteurItem = itemEnDeplacement.offsetHeight;
+                        const styleItem = window.getComputedStyle(itemEnDeplacement);
+                        const margeTopItem = Number.parseInt(styleItem.marginTop);
+                        const hauteurTotale = hauteurItem + margeTopItem;
+
+                        let nombreItems;
+                        if(positionIndicateur - positionInitiale > 0) {
+                            nombreItems = positionIndicateur - positionInitiale - 1;
+                        } else {
+                            nombreItems = positionIndicateur - positionInitiale;
+                        }
+                        
+                        itemEnDeplacement.style.transform +=  `translateY(${hauteurTotale * nombreItems}px)`;
+                        itemEnDeplacement.dataset.phase = 'deplacement';
+                        break;
+                    case 'deplacement' : 
+                        break;
+                    default :
+                        break;
+                }
+            }
+        });
+
+        itemEnDeplacement.dataset.phase = 'decollage';
+        itemEnDeplacement.style.position = "relative";
+        itemEnDeplacement.style.zIndex = "1";
+        itemEnDeplacement.style.transform = "scale(1.05)";
+        itemEnDeplacement.style.boxShadow = "0 0 24px rgba(32,32,32,0.8)";
     }
+    
 }
 
 const getItem = () => {
