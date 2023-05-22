@@ -46,7 +46,7 @@ const replaceWithInput = (event) => {
     const elementParagraphe = event.target;
     const inputNom = document.createElement('input');
     if(elementParagraphe.className === "quantite") {
-        inputNom.type = "number";
+        inputNom.type = 'number';
         inputNom.setAttribute('min', 1);
         inputNom.setAttribute('max', 999);
     } else {
@@ -137,57 +137,98 @@ const dragOver = (event) => {
 };
 
 function drop (event) {
+    // constantes animations
+    const CSS_SCALE = 'scale(1.05)';
+    const PHASE_DECOLLAGE = 'decollage';
+    const PHASE_DEPLACEMENT = 'deplacement';
+    const PHASE_ATTERISSAGE = 'atterissage';
+
+    // fonction animation 
+    const gestionAnimation = (event) => {
+        const phaseItem = itemEnDeplacement.dataset.phase;
+        if(event.propertyName === 'transform') {
+            switch (phaseItem) {
+                case PHASE_DECOLLAGE :
+                    const hauteurItem = itemEnDeplacement.offsetHeight;
+                    const styleItem = window.getComputedStyle(itemEnDeplacement);
+                    const margeTopItem = Number.parseInt(styleItem.marginTop);
+                    const hauteurTotale = hauteurItem + margeTopItem;
+    
+                    let nombreItems;
+                    if(positionIndicateur - positionInitiale > 0) {
+                        nombreItems = positionIndicateur - positionInitiale - 1;
+                        for(let i = positionInitiale + 1; i < positionIndicateur; i++) {
+                            listeUl.children[i].style.transform = `translateY(-${hauteurTotale}px)`;
+                        }
+                    } else {
+                        nombreItems = positionIndicateur - positionInitiale;
+                        for(let i = positionIndicateur ; i < positionInitiale; i++) {
+                            listeUl.children[i].style.transform = `translateY(${hauteurTotale}px)`;
+                        }
+                    }
+                    
+                    itemEnDeplacement.style.transform +=  `translateY(${hauteurTotale * nombreItems}px)`;
+                    itemEnDeplacement.dataset.phase = PHASE_DEPLACEMENT;
+                    break;
+                case PHASE_DEPLACEMENT :
+                    let transform = itemEnDeplacement.style.transform;
+                    transform = transform.replace(CSS_SCALE, '');
+                    transform = transform.trim();
+                    itemEnDeplacement.style.transform = transform;
+                    itemEnDeplacement.style.boxShadow = '';
+                    itemEnDeplacement.dataset.phase = PHASE_ATTERISSAGE;
+                    break;
+                case PHASE_ATTERISSAGE : 
+                    itemEnDeplacement.removeAttribute('data-phase');
+    
+                    // Mettre à jour le DOM
+                    if (positionIndicateur === listeUl.children.length) {
+                        listeUl.children[positionIndicateur - 1].after(itemEnDeplacement);
+                    } else {
+                        listeUl.children[positionIndicateur].before(itemEnDeplacement);
+                    }
+                    // retirer le style CSS des li
+                    for (let i = 0; i < listeUl.children.length; i++) {
+                        listeUl.children[i].removeAttribute('class');
+                        listeUl.children[i].style.transition = 'none';
+                        listeUl.children[i].style.transform = '';
+                        setTimeout(function () {
+                            listeUl.children[i].removeAttribute('style');
+                        }, 0);
+                    }
+                    itemEnDeplacement.removeEventListener('transitionend', gestionAnimation);
+                    break;
+                default :
+                    break;
+            }
+        }
+    };
+    
     // mettre à jour les données de mon tableau maLliste
     const positionIndicateur = indexDeLiDansListe(indicateur);
     
     // si mon indicateur apparait
     if(positionIndicateur >= 0){
+
         // je supprime mon item en déplacement de mon tableau
-        const item = maListe.splice(positionInitiale, 1)[0];
+        const item = maListe.splice(positionInitiale, 1); 
         // puis je le rajoute à sa nouvelle position
         if(positionIndicateur > positionInitiale) {
-            maListe.splice(positionIndicateur - 1, 0, item);
+            maListe.splice(positionIndicateur - 1, 0, ...item);
         } else {
-            maListe.splice(positionIndicateur, 0, item);
+            maListe.splice(positionIndicateur, 0, ...item);
         }
-        //sauvegarde();
+        sauvegarde();
 
         // Animation de deplacement de l'item
-        itemEnDeplacement.addEventListener('transitionend', (event) => {
-            const phaseItem = itemEnDeplacement.dataset.phase;
-            if(event.propertyName === 'transform') {
-                switch (phaseItem) {
-                    case 'decollage' :
-                        const hauteurItem = itemEnDeplacement.offsetHeight;
-                        const styleItem = window.getComputedStyle(itemEnDeplacement);
-                        const margeTopItem = Number.parseInt(styleItem.marginTop);
-                        const hauteurTotale = hauteurItem + margeTopItem;
+        itemEnDeplacement.addEventListener('transitionend', gestionAnimation)
 
-                        let nombreItems;
-                        if(positionIndicateur - positionInitiale > 0) {
-                            nombreItems = positionIndicateur - positionInitiale - 1;
-                        } else {
-                            nombreItems = positionIndicateur - positionInitiale;
-                        }
-                        
-                        itemEnDeplacement.style.transform +=  `translateY(${hauteurTotale * nombreItems}px)`;
-                        itemEnDeplacement.dataset.phase = 'deplacement';
-                        break;
-                    case 'deplacement' : 
-                        break;
-                    default :
-                        break;
-                }
-            }
-        });
-
-        itemEnDeplacement.dataset.phase = 'decollage';
-        itemEnDeplacement.style.position = "relative";
-        itemEnDeplacement.style.zIndex = "1";
-        itemEnDeplacement.style.transform = "scale(1.05)";
-        itemEnDeplacement.style.boxShadow = "0 0 24px rgba(32,32,32,0.8)";
-    }
-    
+        itemEnDeplacement.dataset.phase = PHASE_DECOLLAGE;
+        itemEnDeplacement.style.position = 'relative';
+        itemEnDeplacement.style.zIndex = '1';
+        itemEnDeplacement.style.transform = CSS_SCALE;
+        itemEnDeplacement.style.boxShadow = '0 0 24px rgba(32,32,32,0.8)';
+    }   
 }
 
 const getItem = () => {
@@ -275,6 +316,7 @@ const addNewItem = () => {
     elementPoignee.addEventListener('mousedown', mooveItem);
     elementPoignee.addEventListener('mouseup', dragEnd);
     elementLi.addEventListener('dragend', dragEnd);
+    elementLi.addEventListener('dragover', dragOver);
     elementLi.addEventListener('drop', drop);
 
     // Insertion intelligente
@@ -334,7 +376,7 @@ const addNewItem = () => {
     });
     
     // Vider le input une fois le item rajouté
-    inputNewItem.value = "";
+    inputNewItem.value = '';
     
     // Focus sur le input
     inputNewItem.focus()
